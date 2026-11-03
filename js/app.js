@@ -1,4 +1,12 @@
 import * as api from "./api.js";
+import {
+  signInWithGoogle,
+  signOut,
+  onUserChange,
+  oauthErrorFromUrl,
+  cleanAuthParamsFromUrl,
+  profileOf,
+} from "./auth.js";
 import { CARD_BACK } from "./api.js";
 import {
   handScore,
@@ -14,13 +22,14 @@ const SHOE_SIZE = DECK_COUNT * 52;
 const RESHUFFLE_AT = Math.floor(SHOE_SIZE * 0.25); // cut card at 75% penetration
 const STARTING_BANKROLL = 1000;
 const MAX_HANDS = 4;
-const STORAGE_KEY = "blackjack.bankroll";
+let storageKey = "blackjack.bankroll"; // made per-player once someone signs in
 const DEAL_DELAY = 350;
 
 const state = {
   deckId: null,
   remaining: 0,
-  bankroll: loadBankroll(),
+  player: null,
+  bankroll: STARTING_BANKROLL,
   bet: 0,
   lastBet: 0,
   phase: "betting", // betting | playing | dealer | done
@@ -58,7 +67,7 @@ const el = {
 // ---------- Persistence ----------
 function loadBankroll() {
   try {
-    const saved = Number(localStorage.getItem(STORAGE_KEY));
+    const saved = Number(localStorage.getItem(storageKey));
     return Number.isFinite(saved) && saved > 0 ? saved : STARTING_BANKROLL;
   } catch {
     return STARTING_BANKROLL;
@@ -67,7 +76,7 @@ function loadBankroll() {
 
 function saveBankroll() {
   try {
-    localStorage.setItem(STORAGE_KEY, String(state.bankroll));
+    localStorage.setItem(storageKey, String(state.bankroll));
   } catch {
     /* storage unavailable — ignore */
   }
@@ -537,6 +546,7 @@ el.split.addEventListener("click", split);
 el.reset.addEventListener("click", resetBankroll);
 
 document.addEventListener("keydown", (e) => {
+  if (!state.player) return;
   if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
   const key = e.key.toLowerCase();
   if (state.phase === "playing") {
@@ -549,4 +559,113 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-render();
+// ---------- Sign-in ----------
+const auth = {
+  loading: $("loading-screen"),
+  login: $("login-screen"),
+  game: $("game"),
+  google: $("btn-google"),
+  error: $("login-error"),
+  signout: $("btn-signout"),
+  avatar: $("user-avatar"),
+  initials: $("user-initials"),
+  greeting: $("user-greeting"),
+};
+
+function showLoginError(text) {
+  auth.error.textContent = text;
+  auth.error.hidden = !text;
+}
+
+function greetingFor(firstName) {
+  const hour = new Date().getHours();
+  const part = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return `${part}, ${firstName}!`;
+}
+
+function showPlayer(profile) {
+  auth.greeting.textContent = greetingFor(profile.firstName);
+  auth.greeting.title = profile.email;
+  auth.initials.textContent = profile.name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  auth.initials.hidden = false;
+  auth.avatar.hidden = true;
+  if (profile.avatar) {
+    auth.avatar.onload = () => {
+      auth.avatar.hidden = false;
+      auth.initials.hidden = true;
+    };
+    auth.avatar.onerror = () => {
+      auth.avatar.hidden = true;
+      auth.initials.hidden = false;
+    };
+    auth.avatar.alt = profile.name;
+    auth.avatar.src = profile.avatar;
+  }
+}
+
+function handleUser(user) {
+  document.body.classList.remove("auth-loading");
+  auth.loading.hidden = true;
+  cleanAuthParamsFromUrl();
+
+  if (!user) {
+    state.player = null;
+    auth.game.hidden = true;
+    auth.login.hidden = false;
+    auth.google.disabled = false;
+    return;
+  }
+
+  const profile = profileOf(user);
+  state.player = profile;
+  storageKey = `blackjack.bankroll.${profile.id}`; // each player keeps their own chips
+  state.bankroll = loadBankroll();
+  state.deckId = null;
+  state.lastBet = 0;
+  startBetting();
+  setMessage(`Welcome to the table, ${profile.firstName}. Place your bet to begin`);
+
+  showPlayer(profile);
+  showLoginError("");
+  auth.login.hidden = true;
+  auth.game.hidden = false;
+  render();
+}
+
+auth.google.addEventListener("click", async () => {
+  auth.google.disabled = true;
+  showLoginError("");
+  try {
+    await signInWithGoogle(); // navigates away to Google
+  } catch (err) {
+    console.error(err);
+    showLoginError(`Couldn't start Google sign-in: ${err.message}`);
+    auth.google.disabled = false;
+  }
+});
+
+auth.signout.addEventListener("click", async () => {
+  if (state.busy || state.phase === "playing" || state.phase === "dealer") {
+    if (!confirm("Sign out in the middle of a hand? Your current bet will be lost.")) return;
+  }
+  auth.signout.disabled = true;
+  try {
+    await signOut();
+  } catch (err) {
+    console.error(err);
+    handleUser(null); // clear the UI even if the network call failed
+  } finally {
+    auth.signout.disabled = false;
+  }
+});
+
+const redirectError = oauthErrorFromUrl();
+onUserChange((user) => {
+  handleUser(user);
+  if (!user && redirectError) showLoginError(`Sign-in failed: ${redirectError}`);
+});
