@@ -58,6 +58,14 @@
       </div>
     </header>
 
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-btn-table" class="tab" aria-selected="true" aria-controls="tab-table">Table</button>
+      <button role="tab" id="tab-btn-profile" class="tab" aria-selected="false" aria-controls="tab-profile">
+        Profile <span id="profile-badge" class="badge" hidden>Create</span>
+      </button>
+    </nav>
+
+    <div id="tab-table" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-table">
     <main class="table">
       <section class="area dealer-area" aria-label="Dealer">
         <div class="area-head">
@@ -111,6 +119,66 @@
 
       <p class="credit">Cards by <a href="https://deckofcardsapi.com/" target="_blank" rel="noopener">Deck of Cards API</a></p>
     </footer>
+    </div>
+
+    <section id="tab-profile" class="tab-panel profile-page" role="tabpanel" aria-labelledby="tab-btn-profile" hidden>
+      <p id="profile-loading" class="profile-note">Loading your profile…</p>
+
+      <article id="profile-view" class="profile-card profile-view" hidden>
+        <span class="avatar avatar-xl"><img id="pv-avatar" alt="" referrerpolicy="no-referrer" hidden /><span id="pv-initials"></span></span>
+        <h2 id="pv-name"></h2>
+        <p id="pv-username" class="pv-username"></p>
+        <p id="pv-location" class="pv-location"></p>
+        <p id="pv-bio" class="pv-bio"></p>
+        <p id="pv-since" class="pv-since"></p>
+        <button id="btn-edit-profile" class="btn btn-secondary">Edit profile</button>
+      </article>
+
+      <form id="profile-form" class="profile-card profile-form" hidden novalidate>
+        <h2 id="pf-title">Create your player profile</h2>
+        <p id="pf-intro" class="profile-note">Pick a username and tell other players a bit about yourself.</p>
+
+        <div class="pf-avatar-row">
+          <span class="avatar avatar-lg"><img id="pf-avatar-preview" alt="Profile photo preview" referrerpolicy="no-referrer" hidden /><span></span></span>
+          <div class="field grow">
+            <label for="pf-avatar">Photo URL <span class="optional">optional</span></label>
+            <input id="pf-avatar" type="url" inputmode="url" placeholder="https://…" autocomplete="photo" />
+            <button type="button" id="pf-use-google" class="link-btn">Use my Google photo</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pf-username">Username</label>
+          <div class="input-prefix">
+            <span aria-hidden="true">@</span>
+            <input id="pf-username" required minlength="3" maxlength="20" autocomplete="username" autocapitalize="none" spellcheck="false" aria-describedby="pf-username-hint" />
+          </div>
+          <p id="pf-username-hint" class="field-hint" aria-live="polite">3–20 characters: lowercase letters, numbers, underscores.</p>
+        </div>
+
+        <div class="field">
+          <label for="pf-display">Display name</label>
+          <input id="pf-display" required maxlength="50" autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <label for="pf-location">Location <span class="optional">optional</span></label>
+          <input id="pf-location" maxlength="60" placeholder="e.g. Ho Chi Minh City" />
+        </div>
+
+        <div class="field">
+          <label for="pf-bio">Bio <span class="optional">optional</span></label>
+          <textarea id="pf-bio" maxlength="280" rows="3" placeholder="Favorite strategy, lucky number, trash talk…"></textarea>
+          <p class="field-hint counter"><span id="pf-bio-count">0</span>/280</p>
+        </div>
+
+        <p id="pf-status" class="form-status" role="status"></p>
+        <div class="form-actions">
+          <button type="button" id="pf-cancel" class="btn btn-secondary">Skip for now</button>
+          <button type="submit" id="pf-save" class="btn btn-primary">Create profile</button>
+        </div>
+      </form>
+    </section>
     </div>
   </body>
 </html>

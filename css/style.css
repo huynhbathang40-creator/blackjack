@@ -607,3 +607,269 @@ a:focus-visible {
     max-width: 75vw;
   }
 }
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 16px 0;
+  background: rgba(0, 0, 0, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.badge {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #2b2208;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+}
+
+.tab-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Profile ---------- */
+.profile-page {
+  align-items: center;
+  padding: 24px 16px 40px;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 28px 24px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(232, 196, 106, 0.3);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+
+.profile-card h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.profile-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.avatar-lg {
+  width: 72px;
+  height: 72px;
+  font-size: 1.4rem;
+}
+
+.avatar-xl {
+  width: 112px;
+  height: 112px;
+  font-size: 2.2rem;
+  box-shadow: 0 0 0 3px var(--gold), 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.profile-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.profile-view h2 {
+  margin-top: 14px;
+}
+
+.pv-username {
+  margin: 0;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.pv-location {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.pv-bio {
+  margin: 14px 0 0;
+  max-width: 40ch;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pv-bio.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.pv-since {
+  margin: 14px 0 18px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field.grow {
+  flex: 1;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+
+.field input,
+.field textarea,
+.input-prefix {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.field input:focus,
+.field textarea:focus,
+.input-prefix:focus-within {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(232, 196, 106, 0.25);
+}
+
+.input-prefix {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.input-prefix span {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.input-prefix input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none !important;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.field-hint.error {
+  color: var(--lose);
+}
+
+.field-hint.ok {
+  color: var(--win);
+}
+
+.field-hint.counter {
+  align-self: flex-end;
+}
+
+.field .link-btn {
+  align-self: flex-start;
+}
+
+.form-status {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 0.9rem;
+}
+
+.form-status.error {
+  color: var(--lose);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .profile-card {
+    padding: 22px 18px;
+  }
+  .form-actions .btn {
+    flex: 1;
+  }
+}

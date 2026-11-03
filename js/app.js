@@ -7,6 +7,7 @@ import {
   cleanAuthParamsFromUrl,
   profileOf,
 } from "./auth.js";
+import { setupProfilePage } from "./profile.js";
 import { CARD_BACK } from "./api.js";
 import {
   handScore,
@@ -546,7 +547,8 @@ el.split.addEventListener("click", split);
 el.reset.addEventListener("click", resetBankroll);
 
 document.addEventListener("keydown", (e) => {
-  if (!state.player) return;
+  if (!state.player || activeTab !== "table") return;
+  if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
   if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
   const key = e.key.toLowerCase();
   if (state.phase === "playing") {
@@ -608,6 +610,49 @@ function showPlayer(profile) {
   }
 }
 
+// ---------- Tabs ----------
+let activeTab = "table";
+const tabs = {
+  table: { btn: $("tab-btn-table"), panel: $("tab-table") },
+  profile: { btn: $("tab-btn-profile"), panel: $("tab-profile") },
+};
+
+function showTab(name) {
+  activeTab = name;
+  for (const [key, t] of Object.entries(tabs)) {
+    const on = key === name;
+    t.btn.setAttribute("aria-selected", String(on));
+    t.btn.tabIndex = on ? 0 : -1;
+    t.panel.hidden = !on;
+  }
+}
+
+tabs.table.btn.addEventListener("click", () => showTab("table"));
+tabs.profile.btn.addEventListener("click", () => showTab("profile"));
+document.querySelector(".tabs").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const next = activeTab === "table" ? "profile" : "table";
+  showTab(next);
+  tabs[next].btn.focus();
+});
+
+const profilePage = setupProfilePage({
+  onChange(saved) {
+    $("profile-badge").hidden = !!saved;
+    if (!state.player) return;
+    // Prefer what the player chose in their profile over their Google details.
+    showPlayer({
+      ...state.player,
+      name: saved?.display_name || state.player.name,
+      firstName: saved ? saved.display_name.split(/\s+/)[0] : state.player.firstName,
+      avatar: saved ? saved.avatar_url || "" : state.player.avatar,
+    });
+  },
+  onDone() {
+    showTab("table");
+  },
+});
+
 function handleUser(user) {
   document.body.classList.remove("auth-loading");
   auth.loading.hidden = true;
@@ -615,6 +660,7 @@ function handleUser(user) {
 
   if (!user) {
     state.player = null;
+    showTab("table");
     auth.game.hidden = true;
     auth.login.hidden = false;
     auth.google.disabled = false;
@@ -634,7 +680,18 @@ function handleUser(user) {
   showLoginError("");
   auth.login.hidden = true;
   auth.game.hidden = false;
+  showTab("table");
   render();
+
+  // First visit? Send new players to create their profile.
+  profilePage.load(profile).then((saved) => {
+    if (state.player?.id !== profile.id) return; // signed out meanwhile
+    if (saved === null) {
+      showTab("profile");
+    } else if (saved) {
+      setMessage(`Welcome back, ${saved.display_name.split(/\s+/)[0]}. Place your bet to begin`);
+    }
+  });
 }
 
 auth.google.addEventListener("click", async () => {

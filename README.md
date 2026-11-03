@@ -4,6 +4,7 @@ A browser Blackjack game built with plain HTML, CSS and JavaScript. Cards are sh
 
 ## Features
 
+- **Player profiles**: a Profile tab where signed-in players create and edit a profile (unique @username, display name, photo, location, bio), stored in Supabase
 - **Sign in with Google** (Supabase Auth): a personal greeting with your name and Google profile picture, and a separate saved bankroll for each player
 - 6-deck shoe from the API; it reshuffles automatically when 75% of the cards have been dealt
 - Hit, Stand, Double Down and Split (up to 4 hands; split aces get one card each)
@@ -27,10 +28,12 @@ A browser Blackjack game built with plain HTML, CSS and JavaScript. Cards are sh
 index.html          page markup
 css/style.css       table, card and control styles
 js/auth.js          Supabase client + Google sign-in helpers
+js/profile.js       Profile tab: load/create/edit the player's profile
 js/api.js           Deck of Cards API wrapper
 js/blackjack.js     pure game rules (scoring, dealer logic, payouts)
 js/app.js           game state, round flow and rendering
 tests/              unit tests for the rules (node --test)
+supabase/migrations SQL for the database tables (already applied)
 netlify.toml        Netlify config (static, no build)
 ```
 
@@ -48,6 +51,19 @@ One-time configuration:
    - **Redirect URLs**: add `https://your-site.netlify.app/**` and, for local testing, `http://localhost:3000/**` (or whatever port you use).
 
 If a URL isn't on the Redirect URLs list, Supabase sends users to the Site URL after they sign in.
+
+## Database
+
+`supabase/migrations/20261103000000_create_profiles.sql` creates `public.profiles`, with one row per signed-in user (`id` = `auth.users.id`):
+
+| Column | Notes |
+| --- | --- |
+| `username` | unique, 3–20 chars of `a-z 0-9 _` |
+| `display_name` | 1–50 chars |
+| `bio`, `location`, `avatar_url` | optional (`avatar_url` must be https) |
+| `created_at`, `updated_at` | `updated_at` is kept current by a trigger |
+
+Row Level Security: signed-in players can view profiles, but each player can create, edit or delete only their own. Signed-out visitors have no access.
 
 ## Run locally
 
